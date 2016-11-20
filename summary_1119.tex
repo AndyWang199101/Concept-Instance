@@ -1,0 +1,191 @@
+\documentclass[12pt]{article}
+\usepackage[english]{babel}
+\usepackage{longtable}
+\usepackage[top=1in, bottom=1.25in, left=1.25in, right=1.25in,includefoot,heightrounded]{geometry}
+\usepackage{indentfirst}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx,tikz}
+\usepackage{hyperref}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[document]{ragged2e}
+\usepackage{fancyhdr}
+\usepackage{enumerate}
+\usepackage{listings}
+\usepackage{color}
+%\usepackage{flowchart}
+\usepackage{hyperref}
+\usetikzlibrary{arrows}
+
+
+\usetikzlibrary{shapes.geometric, arrows}
+\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm,text centered, draw=black, fill=red!30]
+\tikzstyle{decision} = [diamond, minimum width=4cm, minimum height=0.5cm, text centered, draw=black, fill=green!30]
+\tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=orange!30]
+\tikzstyle{arrow} = [thick,->,>=stealth]
+\tikzstyle{io} = [trapezium, trapezium left angle=70, trapezium right angle=110, minimum width=2cm, text width=4cm, minimum height=1cm, text centered, draw=black, fill=blue!30]
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Dongfang Wang}
+\lhead{Concept-Instance Project}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\baselinestretch}{1.2}
+
+\renewcommand{\labelitemi}{$\circ$}
+
+\definecolor{MyDarkGreen}{rgb}{0.0,0.4,0.0} % This is the color used for comments
+\lstloadlanguages{java} % Load C syntax for listings, for a list of other languages supported see: ftp://ftp.tex.ac.uk/tex-archive/macros/latex/contrib/listings/listings.pdf
+\lstset{language=java, 
+        %frame=single,  Single frame around code
+        basicstyle=\small\ttfamily, % Use small true type font
+        keywordstyle=[1]\color{blue}\bf, % C functions bold and blue
+        keywordstyle=[2]\color{purple}, % C function arguments purple
+        keywordstyle=[3]\color{blue}\underbar, % Custom functions underlined and blue
+        identifierstyle=, % Nothing special about identifiers                                         
+        commentstyle=\usefont{T1}{pcr}{m}{sl}\color{MyDarkGreen}\small, % Comments small dark green courier font
+        stringstyle=\color{purple}, % Strings are purple
+        showstringspaces=false, % Don't put marks in string spaces
+        tabsize=5, % 5 spaces per tab
+        %
+        % Put standard Perl functions not included in the default language here
+        morekeywords={rand},
+        %
+        % Put Perl function parameters here
+        morekeywords=[2]{on, off, interp},
+        %
+        % Put user defined functions here
+        morekeywords=[3]{test},
+       	%
+        morecomment=[l][\color{blue}]{...}, % Line continuation (...) like blue comment
+        numbers=left, % Line numbers on left
+        firstnumber=1, % Line numbers start with line 1
+        numberstyle=\tiny\color{blue}, % Line numbers are blue and small
+        stepnumber=1 % Line numbers go in steps of 5
+}
+\lstset{literate=%
+{à}{{\`a}}1
+{é}{{\'e}}1
+{è}{{\`e}}1
+{í}{{\'i}}1
+{ò}{{\`o}}1
+{ó}{{\'o}}1
+{ú}{{\'u}}1
+{ç}{{\c{c}}}1
+}
+%\lstset{extendedchars=\true}
+\lstset{inputencoding=ansinew}
+\lstset{breaklines=true} %, postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}}}
+\begin{document}
+
+\section*{Summary of this week}
+
+Recently, I've been tired of tempting different gene selection methods,
+different clustering methods, different parameters, etc., to obtain appropriate
+consensus clustering results. Finally something interesting was found, and I'm trying
+to summarize them as follows.
+
+\subsection*{PAC score}
+It's not trival to select a plausible estimated number of clusters for any
+clustering methods. There exist some works
+offering some heuristic methods to do this. {\bf \color{blue}PAC}(Proportion of
+Ambiguously Clustered pairs), especially the rounded PAC score, is a relatively
+reasonal standard for consensus clustering methods. 
+
+\vspace{5pt}
+Each element of the consensus matrix represents the proportion of
+a sample pair being clustered into the same cluster during the re-sampling
+procedure, with 0 meaning this pair never appears in the same cluster, and 1
+meaning this pair always appear in the same cluster.
+
+\vspace{5pt}
+So we set two thresholds,
+\[ u_1=0.1,\qquad u_2=0.9 \]
+and PAC is the proportion of sample pairs locating in the region $[u_1,u_2]$. So
+samller PAC means more stable clustering results.
+
+\vspace{5pt}
+Finally, we use the $K$ with the samllest PAC score. For example, in the
+following graph, $K=5$ will be selected.
+
+\begin{figure}[!h]
+  \centering
+  \includegraphics[width=.5\textwidth,height=185pt]{./fig/consensus.pdf}
+ \end{figure}
+
+ \subsection*{Implementation}
+
+ Next, I implement consensus clutering on the BREAST cancer datasets. Some
+ packages I use are listed as follows.
+ \begin{itemize}
+ \item {\bf \color{blue}'ConsensusClustePlus'}. This is a Bioconductor-based package, which
+   implements all regular inner clustering methods for consensus clustering.
+   Something strange exists in this package, although. It offers
+   interface for users-defined clusterint methods, which, however, are only
+   allowed to accept distance matrix and number of clusters as input. This, of
+   course, can fit most clustering methods, but not all, such as the basic
+   kmeans methods. So why do we modify the basic kmeans, just to look for
+   troubles? Unfortunately, the kmeans embedded inside the package is the
+   default parameters of {\bf R}'s kmeans function, which sets $iter.max=10,\
+   nstart=1$, using only one random start, and 10 iterations. This has great
+   possibilies not to converge.
+ \item {\bf\color{blue}'curatedBreastData'}. This package collects 34 public
+   available breast cancer datasets. This package contains also a function
+   {\color{blue}filterAndImputeSamples } to impute NAs in the gene expression matrix.
+ \end{itemize}
+
+ Finally, we summarize results in the table of next page:
+\begin{longtable}{c|l|ccc}
+%\centeringi
+%\label{my-label}
+%\begin{tabular}{c|l|ccc}
+\hline
+ \bf\color{blue} NO. &  \bf\color{blue} NAME &  \bf\color{blue}Samples &  \bf\color{blue} Optimal K &  \bf\color{blue} PAC  \\
+\hline
+ 1 & GPL1223\_all(1379) & 60-2 & 5 & 0.03 \\
+ 2 & GPL96\_all(2034) & 286-5 & 7 & 0.095  \\
+ 3 & GPL3558\_all(4913) & 50-2 & 6 & 0.156 \\
+  4 & GPL3883\_all(6577) & 88-4 & 4 & 0.11\\
+  5 & GPL\_5049\_all(9893) & 155-30 & 10 & 0.27\\
+  6 & GPL5186\_all(12071) & $<$50 & -&- \\
+  7 & GPL96\_all(12093) & 136-10 & 2 & 0.107\\
+  8 & GPL570\_all(16391) & $<$50 & -&- \\
+  9 & GPL570\_aLL(16446) & 114-6 & 2 & 0 \\
+  10 & GPL\_JBI\_Tissue\_..(17705) & 103-2 & 10 & 0.19 \\
+  11 & GPL\_MDACC\_Tissue\_..(17705) & 195-11 & 3 & 0.08 \\
+  12 & GPL570\_all(18728) & $<$50 & - & -\\
+  13 & GPL570\_all(19615) & 115-5 & 2 & 0.07 \\
+  14 & GPL570\_all(19697) & $<$50 & -&- \\
+  15 & GPL96\_all(20181) & 53-2 & 10 & 0.18\\
+  16 & GPL96\_all(20194) & 261-11 & 2 & 0.07\\
+  17 & GPL6480\_all(21974) & $<$50 & -&- \\
+  18 & GPL1390\_all(21997) & $<$50 & -&- \\
+  19 & GPL5325\_all(21997) & $<$50 & -&- \\
+  20 & GPL7504\_all(21997) & $<$50 & -&- \\
+  21 & GPL1708\_all(22226) & 128-9 & 4 & 0.10 \\
+  22 & GPL4133\_all(22226) & $<$50 & -&- \\
+  23 & GPL5325\_all(22358) & 122-8 & 4 & 0.07 \\
+  24 & GPL5325\_all(23428) & $<$50 & -&- \\
+  25 & GPL96\_MDACC\_M(25055) & 221-12 & 3 & 0.06 \\
+  26 & GPL96\_MDACC\_PERU(25055) & $<$50 & -&- \\
+  27 & GPL96\_LBJ(2506 5) & $<$50 & -&- \\
+  28 & GPL96\_MDACC(25065) & 71-2 & 2 & 0.03 \\
+  29 & GPL96\_MDACC\_MDA(25065) & $<$50 & -&- \\
+  30 & GPL96\_PERU(25065) & $<$50 & -&- \\
+  31 & GPL96\_Spain(25065) & $<$50 & -&- \\
+  32 & GPL96\_US0(25065) & 54-1 & 2 & 0.04 \\
+  33 & GPL570\_all(32646) & 115-7 & 2 & 0.07 \\
+  34 & GPL570\_all(33658) & $<$50 & -&- \\
+  \hline
+%\end{tabular}
+\end{longtable}
+
+\begin{itemize}
+\item No.2, 2-7 all less than 0.15.
+\item NO.9, $K=3$, $0.07$.
+\item NO.13, $K=3,\ 0.12$; $K=4,\ 0.11$.
+\item NO.16, $4-6$ all less than 0.15.
+  \item NO.21, many are less than 0.15.
+\end{itemize}
+\end{document}

@@ -135,57 +135,135 @@ following graph, $K=5$ will be selected.
    {\color{blue}filterAndImputeSamples } to impute NAs in the gene expression matrix.
  \end{itemize}
 
- Finally, we summarize results in the table of next page:
-\begin{longtable}{c|l|ccc}
+During the debug process, I find the following parameters may have some
+substantial effects:
+\begin{itemize}
+\item The number of genes selected and the selection strategy
+\item The inner clustering algorithms
+\item The implementation of clustering algorithms
+\item ...
+\end{itemize}
+Before I elaborate on some experiment results, I must admit by adjusting the
+above parameters alone or all, I didn't obtain the expected results. It may seem
+weird to me,that by accident, I checked the detailed implementations of {\bf
+  \color{blue}COINCIDE} package, and they use $pItem=.9$ instead of the $0.8$ I
+used. This parameter controls the proportion of re-sampled samples, i.e. there
+will be $pItem \times N$ samples sampled from the original datasets. I don't
+know why this is, but I obseved in my experiments.
+
+Now, for others, I should summarize some heuristic strategies. The main inner
+clustering methods include kmeans and hierarchical clutering. The former is
+good, but we should use 100 iterations. The latter should be used carefully. The
+'complete' linkage method is should not be used, which usually clusters most
+patients in one cluster and leaves extreme small number of patients.
+
+I will only use kmeans in the following discussions. I summarize results in the table.
+\begin{longtable}{c|l|cccc}
 %\centeringi
 %\label{my-label}
-%\begin{tabular}{c|l|ccc}
+%\begin{tabular}{c|l|cccc}
 \hline
- \bf\color{blue} NO. &  \bf\color{blue} NAME &  \bf\color{blue}Samples &  \bf\color{blue} Optimal K &  \bf\color{blue} PAC  \\
+ \bf\color{blue} NO.&\bf\color{blue}NAME&\bf\color{blue}Samples&\bf\color{blue}Gene&\bf\color{blue} Optimal K&\bf\color{blue} PAC  \\
 \hline
- 1 & GPL1223\_all(1379) & 60-2 & 5 & 0.03 \\
- 2 & GPL96\_all(2034) & 286-5 & 7 & 0.095  \\
- 3 & GPL3558\_all(4913) & 50-2 & 6 & 0.156 \\
-  4 & GPL3883\_all(6577) & 88-4 & 4 & 0.11\\
-  5 & GPL\_5049\_all(9893) & 155-30 & 10 & 0.27\\
-  6 & GPL5186\_all(12071) & $<$50 & -&- \\
-  7 & GPL96\_all(12093) & 136-10 & 2 & 0.107\\
-  8 & GPL570\_all(16391) & $<$50 & -&- \\
-  9 & GPL570\_aLL(16446) & 114-6 & 2 & 0 \\
-  10 & GPL\_JBI\_Tissue\_..(17705) & 103-2 & 10 & 0.19 \\
-  11 & GPL\_MDACC\_Tissue\_..(17705) & 195-11 & 3 & 0.08 \\
-  12 & GPL570\_all(18728) & $<$50 & - & -\\
-  13 & GPL570\_all(19615) & 115-5 & 2 & 0.07 \\
-  14 & GPL570\_all(19697) & $<$50 & -&- \\
-  15 & GPL96\_all(20181) & 53-2 & 10 & 0.18\\
-  16 & GPL96\_all(20194) & 261-11 & 2 & 0.07\\
-  17 & GPL6480\_all(21974) & $<$50 & -&- \\
-  18 & GPL1390\_all(21997) & $<$50 & -&- \\
-  19 & GPL5325\_all(21997) & $<$50 & -&- \\
-  20 & GPL7504\_all(21997) & $<$50 & -&- \\
-  21 & GPL1708\_all(22226) & 128-9 & 4 & 0.10 \\
-  22 & GPL4133\_all(22226) & $<$50 & -&- \\
-  23 & GPL5325\_all(22358) & 122-8 & 4 & 0.07 \\
-  24 & GPL5325\_all(23428) & $<$50 & -&- \\
-  25 & GPL96\_MDACC\_M(25055) & 221-12 & 3 & 0.06 \\
-  26 & GPL96\_MDACC\_PERU(25055) & $<$50 & -&- \\
-  27 & GPL96\_LBJ(2506 5) & $<$50 & -&- \\
-  28 & GPL96\_MDACC(25065) & 71-2 & 2 & 0.03 \\
-  29 & GPL96\_MDACC\_MDA(25065) & $<$50 & -&- \\
-  30 & GPL96\_PERU(25065) & $<$50 & -&- \\
-  31 & GPL96\_Spain(25065) & $<$50 & -&- \\
-  32 & GPL96\_US0(25065) & 54-1 & 2 & 0.04 \\
-  33 & GPL570\_all(32646) & 115-7 & 2 & 0.07 \\
-  34 & GPL570\_all(33658) & $<$50 & -&- \\
+  1 & GPL1223\_all(1379) & 60-2 &0.05& 4 & 0.08 \\
+    & & & 0.1 & 5 & 0.006 \\
+  & & & 0.5 & 5 & 0.17 \\ \hline
+  2 & GPL96\_all(2034) & 286-5 & 0.05 & 2 & 0.05  \\
+                    & & & 0.1 & 7 & 0.11 \\
+  & & & 0.5 & 7 & 0.09 \\ \hline
+  3 & GPL3558\_all(4913) & 50-2 & 0.05 & 7 & 0.11 \\
+                    & & & 0.1 & 6& 0.17\\
+  & & & 0.5 & 2 & 0.08\\ \hline
+  4 & GPL3883\_all(6577) & 88-4 & 0.05 & 4 & 0.11\\
+                    & & & 0.1 & 4 & 0.13\\
+  & & & 0.5 & 4 & 0.14\\ \hline
+  5 & GPL\_5049\_all(9893) & 155-30 & 0.01 & 10 & 0.27\\
+                     & & & 0.1 & 10 & 0.26 \\
+  & & & 0.5 & 4 & 0.19 \\ \hline
+  6 & GPL5186\_all(12071) & 46-2 & 0.05 & -&- \\
+                      & & & 0.1 & 10 & 0.14 \\
+  & & & 0.5 & 3 & 0.12 \\ \hline
+  7 & GPL96\_all(12093) & 136-10 & 0.05 & 2 & 0.107\\
+                       & & & 0.1 &2 &0.107  \\
+  & & & 0.5 & 2 & 0.05  \\ \hline
+  8 & GPL570\_all(16391) & 48-2 & 0.05 & & \\
+                       & & & 0.1 & 10 & 0.16 \\
+  & & & 0.5 & 2 & 0 \\ \hline
+  9 & GPL570\_aLL(16446) & 114-6 & 0.05 & & 0 \\
+                        & & & 0.1 &2 & 0 \\
+  & & & 0.5 & 2 & 0.02 \\ \hline
+  10 & GPL\_JBI(17705) & 103-2 & 0.05 & 6 & 0.16 \\
+                       & & & 0.1 &10 &0.18  \\
+  & & & 0.5 & 2&0.17  \\ \hline
+ 
+  11 & GPL\_MDACC(17705) & 195-11 & 0.05 & 2 & 0.07 \\
+                        & & & 0.1 &3 &0.08  \\
+  & & & 0.5 &3 & 0.09 \\ \hline
+  12 & GPL570\_all(18728) & 21 &- & - & -\\
+  \hline
+  13 & GPL570\_all(19615) & 115-5 & 0.05 &2 & 0.02 \\
+                        & & & 0.1 &2 &0.06  \\
+  & & & 0.5 &2 & 0.09 \\ \hline
+  14 & GPL570\_all(19697) & 24 & - & -&- \\
+  \hline
+  15 & GPL96\_all(20181) & 53-2 & 0.05 & 4 & 0.19\\
+                        & & & 0.1 & 10 & 0.17 \\
+  & & & 0.5 &10 & 0.16 \\ \hline
+  16 & GPL96\_all(20194) & 261-11 & 0.05 & 7 & 0.10\\
+                        & & & 0.1 &2 &0.07  \\
+  & & & 0.5 & 6 & 0.08 \\ \hline
+  17 & GPL6480\_all(21974) & 32 & - & -&- \\
+  \hline
+  18 & GPL1390\_all(21997) & 35 & - & -&- \\
+  \hline
+  19 & GPL5325\_all(21997) & 28 & - & -&- \\
+  \hline
+  20 & GPL7504\_all(21997) & 31 &- & -&- \\
+  \hline
+  21 & GPL1708\_all(22226) & 128-9 & 0.05 & 4 & 0.12 \\
+                        & & & 0.1 &3 &0.11  \\
+  & & & 0.5 & 7 & 0.12  \\ \hline
+  22 & GPL4133\_all(22226) & 20 & - & - &- \\
+  \hline
+  23 & GPL5325\_all(22358) & 122-8 & 0.05 & 4 & 0.08 \\
+                        & & & 0.1 & 4& 0.07 \\
+  & & & 0.5 & 5 & 0.12 \\ \hline
+  24 & GPL5325\_all(23428) & 16 & - & -&- \\
+  \hline
+  25 & GPL96\_MDACC(25055) & 221-12 & 0.05 & 2 & 0.06 \\
+                        & & & 0.1 & 3 & 0.06 \\
+  & & & 0.5 & 3 & 0.03  \\ \hline
+  26 & GPL96\_MDACC(25055) & 6 & - & -&- \\
+  \hline
+  27 & GPL96\_LBJ(2506 5) & 17 & - &  -&- \\
+  \hline
+  28 & GPL96\_MDACC(25065) & 71-2 & 0.05 &2 & 0.03 \\
+                        & & & 0.1 & 2& 0.03 \\
+  & & & 0.5 & 2 & 0 \\ \hline
+  29 & GPL96\_MDACC\_MDA(25065) & 15-1 & -& -&- \\
+  \hline
+  30 & GPL96\_PERU(25065) & 25-1 & - & -&- \\
+  \hline
+  31 & GPL96\_Spain(25065) & 16-2 & - &  -&- \\
+  \hline
+  32 & GPL96\_US0(25065) & 54-1 & 0.05 & 2 & 0.04 \\
+                        & & & 0.1 &2 & 0.04 \\
+  & & & 0.5 & 2 & 0.07 \\ \hline
+  33 & GPL570\_all(32646) & 115-7 & 0.05 & 3 & 0.02 \\
+                        & & & 0.1 & 2&0.07  \\
+  & & & 0.5 & 10 & 0.16 \\ \hline
+  34 & GPL570\_all(33658) & 11 & - & - & - \\
   \hline
 %\end{tabular}
 \end{longtable}
 
-\begin{itemize}
-\item No.2, 2-7 all less than 0.15.
-\item NO.9, $K=3$, $0.07$.
-\item NO.13, $K=3,\ 0.12$; $K=4,\ 0.11$.
-\item NO.16, $4-6$ all less than 0.15.
-  \item NO.21, many are less than 0.15.
-\end{itemize}
+Basically, we can say there's no significant effects of the number of genes
+selected if PAC is not very large.
+
+{\bf Note:} I check the consensusClusetrPlus.R and find that they adopt a
+replace-free re-sampling strategy. So stange...
+
+All my results are stored on the server:
+/data/home/dwang/project/conceptInstance/ConsensusClusterPlusImplementation
+
 \end{document}
